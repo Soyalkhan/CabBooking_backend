@@ -8,11 +8,13 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 export const signup = async (req, res) => {
   const { name, email, password } = req.body;
-  console.log(req.body);
+  console.log("Signup request : ", req.body);
+
   
   try {
     const existing = await User.findOne({ email });
     if (existing) return res.status(400).json({ msg: "User already exists" });
+
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const otp = generateOtp();
@@ -27,8 +29,9 @@ export const signup = async (req, res) => {
     });
 
     await sendOTPEmail(email, otp);
+    console.log("OTP sent to email: ", email);
 
-    res.status(201).json({ msg: "Signup successful, OTP sent to email" });
+    res.status(201).json({data: user,  msg: "Signup successful, OTP sent to email" });
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }
@@ -47,8 +50,9 @@ export const verifyOtp = async (req, res) => {
     user.otp = undefined;
     user.otpExpires = undefined;
     await user.save();
+console.log("User verified: ", user.email); 
 
-    res.status(200).json({ msg: "Email verified successfully" });
+    res.status(200).json({ data: user, msg: "Email verified successfully" });
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }

@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-console.log("SMTP Configured with Gmail" , process.env.EMAIL_USER , process.env.EMAIL_PASS);
+// console.log("SMTP Configured with Gmail" , process.env.EMAIL_USER , process.env.EMAIL_PASS);
 
 const sendOTPEmail = async (to, otp) => {
   const mailOptions = {
