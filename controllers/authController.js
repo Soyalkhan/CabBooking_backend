@@ -97,3 +97,19 @@ export const resendOtp = async (req, res) => {
     res.status(500).json({ msg: err.message });
   }
 };
+
+
+
+export const getUserDetails = async (req, res) => {
+  try {
+    // Get user details from the database using the user id from the token (set in the middleware)
+    const user = await User.findById(req.user.id).select('-password'); // Exclude password from the response
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    res.status(200).json({ user }); // Send back the user data
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
+};
