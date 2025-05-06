@@ -28,6 +28,8 @@ export const signup = async (req, res) => {
       otpExpires,
     });
 
+     
+
     await sendOTPEmail(email, otp);
     console.log("OTP sent to email: ", email);
 
