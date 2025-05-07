@@ -7,6 +7,7 @@ import cabRoutes from "./routes/cabRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
 import routeRoutes from "./routes/routeRoutes.js";
+import contactRoutes from "./routes/contactRoutes.js";
 dotenv.config();
 
 const app = express();
@@ -23,7 +24,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/cabs", cabRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/bookings", bookingRoutes);
-// new route calculator
 app.use("/api/route", routeRoutes);
+app.use("/api/contact", contactRoutes);
 
 export default app;
