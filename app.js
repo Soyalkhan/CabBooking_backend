@@ -8,6 +8,11 @@ import userRoutes from "./routes/userRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
 import routeRoutes from "./routes/routeRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
+import driverRoutes from "./routes/driverRoutes.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
+import discountRoutes from "./routes/discountRoutes.js";
+import pageViewRoutes from "./routes/pageViewRoutes.js";
+import healthRoutes from "./routes/healthRoutes.js";
 dotenv.config();
 
 const app = express();
@@ -15,7 +20,9 @@ const app = express();
 const allowedOrigins = [
   "https://bookmycab.co",
   "https://www.bookmycab.co",
-  "http://localhost:5000", // (optional for local dev)
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:5000",
 ];
 
 app.use(
@@ -28,7 +35,7 @@ app.use(
         callback(new Error("Not allowed by CORS"));
       }
     },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
@@ -48,5 +55,10 @@ app.use("/api/users", userRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/route", routeRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/drivers", driverRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/discounts", discountRoutes);
+app.use("/api/analytics", pageViewRoutes);
+app.use("/api/health", healthRoutes);
 
 export default app;

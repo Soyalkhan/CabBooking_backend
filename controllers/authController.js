@@ -8,17 +8,13 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 export const signup = async (req, res) => {
   const { name, email, password } = req.body;
-  console.log("Signup request : ", req.body);
-
-  
   try {
     const existing = await User.findOne({ email });
     if (existing) return res.status(400).json({ msg: "User already exists" });
 
-
     const hashedPassword = await bcrypt.hash(password, 10);
     const otp = generateOtp();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 min
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
 
     const user = await User.create({
       name,
@@ -28,12 +24,9 @@ export const signup = async (req, res) => {
       otpExpires,
     });
 
-     
+    await sendOTPEmail(email, otp, "signup");
 
-    await sendOTPEmail(email, otp);
-    console.log("OTP sent to email: ", email);
-
-    res.status(201).json({data: user,  msg: "Signup successful, OTP sent to email" });
+    res.status(201).json({ data: user, msg: "Signup successful, OTP sent to email" });
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }
@@ -51,8 +44,7 @@ export const verifyOtp = async (req, res) => {
     user.isVerified = true;
     user.otp = undefined;
     user.otpExpires = undefined;
-    await user.save();
-console.log("User verified: ", user.email); 
+    await user.save({ validateModifiedOnly: true });
 
     res.status(200).json({ data: user, msg: "Email verified successfully" });
   } catch (err) {
@@ -62,7 +54,6 @@ console.log("User verified: ", user.email);
 
 export const login = async (req, res) => {
   const { email, password } = req.body;
-  console.log("Login request : ", req.body);
   try {
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ msg: "User not found" });
@@ -90,9 +81,9 @@ export const resendOtp = async (req, res) => {
 
     user.otp = otp;
     user.otpExpires = otpExpires;
-    await user.save();
+    await user.save({ validateModifiedOnly: true });
 
-    await sendOTPEmail(email, otp);
+    await sendOTPEmail(email, otp, "resend-otp");
 
     res.status(200).json({ msg: "OTP resent to email" });
   } catch (err) {
@@ -100,17 +91,55 @@ export const resendOtp = async (req, res) => {
   }
 };
 
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ msg: "No account found with this email" });
 
+    const otp = generateOtp();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+
+    user.otp = otp;
+    user.otpExpires = otpExpires;
+    await user.save({ validateModifiedOnly: true });
+
+    await sendOTPEmail(email, otp, "reset-password");
+
+    res.status(200).json({ msg: "Password reset OTP sent to email" });
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    if (user.otp !== otp || new Date() > user.otpExpires)
+      return res.status(400).json({ msg: "Invalid or expired OTP" });
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.otp = undefined;
+    user.otpExpires = undefined;
+    await user.save({ validateModifiedOnly: true });
+
+    res.status(200).json({ msg: "Password reset successfully" });
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
+};
 
 export const getUserDetails = async (req, res) => {
   try {
-    // Get user details from the database using the user id from the token (set in the middleware)
-    const user = await User.findById(req.user.id).select('-password'); // Exclude password from the response
+    const user = await User.findById(req.user.id).select("-password");
     if (!user) {
       return res.status(404).json({ msg: "User not found" });
     }
-
-    res.status(200).json({ user }); // Send back the user data
+    res.status(200).json({ user });
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }
